@@ -1,8 +1,7 @@
 #pragma once
 
+#include "base.h"
 #include <pthread.h>
-#include <functional>
-#include "Nocopyable.h"
 
 class Thread : public Nocopyable
 {
