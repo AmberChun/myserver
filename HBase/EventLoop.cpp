@@ -18,6 +18,7 @@ static pid_t gettid()
 
 EventLoop::EventLoop()
     :isLooping(false)
+    ,quit_(false)
     ,threadId(gettid())
     ,epoller(new Epoller(this))
 {
@@ -51,8 +52,10 @@ void EventLoop::loop()
     assert(!isLooping);
     assert(!isInLoopThread());
     isLooping = true;
+    quit_ = false;
     
-    while(true)
+    //run poll or epoll
+    while(!quit_)
     {
         activeChannels.clear();
         epoller->runOnce(&activeChannels);
@@ -62,11 +65,20 @@ void EventLoop::loop()
         }
     }
 
-    //run poll or epoll
-    printf("loop sucess! %d \n",threadId); 
+    
+
     isLooping = false;
 }
 
+void EventLoop::quit()
+{
+    quit_ = true;
+}
 
+void EventLoop::updateChannel(Channel * channel)
+{
+    assert(channel->getLoop() == this);
+    epoller->updateChannel(channel);
+}
 
 

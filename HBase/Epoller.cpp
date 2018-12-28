@@ -4,7 +4,7 @@
 
 #include <sys/epoll.h>
 
-static int MY_EPOLL_MOD = 0;//EPOLLET;
+static int MY_EPOLL_MOD = EPOLLET;
 
 Epoller::Epoller(EventLoop * loop_)
 :loop(loop_)
@@ -71,7 +71,7 @@ void Epoller::removeChannel(Channel * chl)
 
 void Epoller::runOnce(ChannelList* activeChannels)
 {
-    int nfds = epoll_wait(epollfd, &eventList[0], (int)eventList.size(), -1);
+    int nfds = epoll_wait(epollfd, &eventList[0], (int)eventList.size(), 0);
     if(nfds > 0)
     {
         fillActiveChannels(nfds,activeChannels);

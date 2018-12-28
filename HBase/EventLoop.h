@@ -17,9 +17,14 @@ public:
     static EventLoop* getEventLoopOfCurrentThread();
     
     void loop();
+    void quit();
+
+    //channel相关
+    void updateChannel(Channel * channel);
 
 private:
     bool isLooping;
+    bool quit_;
     const pid_t threadId;
     std::unique_ptr<Epoller> epoller;
     ChannelList activeChannels;
