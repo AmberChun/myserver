@@ -2,6 +2,7 @@
 #include "Epoller.h"
 #include "Channel.h"
 
+
 #include <stdlib.h> //exit
 #include <assert.h> //assert
 #include <stdio.h> //printf
@@ -21,6 +22,7 @@ EventLoop::EventLoop()
     ,quit_(false)
     ,threadId(gettid())
     ,epoller(new Epoller(this))
+    ,queue(this)
 {
     if(t_loopInThisThread)
     {
@@ -54,7 +56,7 @@ void EventLoop::loop()
     isLooping = true;
     quit_ = false;
     
-    //run poll or epoll
+    //run epoll 
     while(!quit_)
     {
         activeChannels.clear();
@@ -63,9 +65,9 @@ void EventLoop::loop()
         {
             channel->handleEvent();
         }
-    }
 
-    
+        queue.doActiveTimer();
+    }
 
     isLooping = false;
 }
@@ -79,6 +81,44 @@ void EventLoop::updateChannel(Channel * channel)
 {
     assert(channel->getLoop() == this);
     epoller->updateChannel(channel);
+}
+
+void EventLoop::runInLoop(const FuncCallback& cb)
+{
+    if(isInLoopThread())
+    {
+        cb();
+    }
+    else
+    {
+        MutexLockGuard lock(mutex);
+        funcCallbackList.push_back(cb);
+    }
+}
+
+void EventLoop::runFuncCallback()
+{   
+    FuncCallbackList tempList;
+
+    {
+        MutexLockGuard lock(mutex);
+        tempList.swap(funcCallbackList);
+    }
+
+    for (FuncCallback cb : tempList)
+    {
+        cb();
+    }
+}
+
+void EventLoop::runAt(const FuncCallback& cb,Timestamp when)
+{
+   queue.addTimer(cb,when,0);
+}
+
+void EventLoop::runEvery(const FuncCallback& cb,int interval)
+{
+   queue.addTimer(cb,1,interval);
 }
 
 
