@@ -2,7 +2,7 @@
 
 #include "base.h"
 #include "Mutex.h"
-#include "TimerQueue.h"
+
 
 class Channel;
 class Epoller;
@@ -29,13 +29,16 @@ public:
     //其他线程可调用
     void runInLoop(const FuncCallback& cb);
 
-    void runAt(const FuncCallback& cb,Timestamp when);
+    void runAfter(const FuncCallback& cb,Timestamp when);
     void runEvery(const FuncCallback& cb,int interval);
+
 private:
     bool isInLoopThread();
     //此调用中不得再往funcCallbackList容器中push新的内容
     void runFuncCallback();
 
+    void wakeup(); //runInLoop 调用
+    void handleRead(); //wakeupChannel 的读事件调用
 
 private:
     bool isLooping;
@@ -47,5 +50,8 @@ private:
     FuncCallbackList funcCallbackList;
     MutexLock mutex;
 
-    TimerQueue queue;
+    std::unique_ptr<TimerQueue> timerQueue;
+
+    //EventLoop的唤醒功能
+    std::unique_ptr<Channel> wakeupChannel; 
 };

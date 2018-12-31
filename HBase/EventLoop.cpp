@@ -1,6 +1,7 @@
 #include "EventLoop.h"
 #include "Epoller.h"
 #include "Channel.h"
+#include "TimerQueue.h"
 
 
 #include <stdlib.h> //exit
@@ -8,6 +9,7 @@
 #include <stdio.h> //printf
 #include <unistd.h> //syscall
 #include <sys/syscall.h> //syscall‘s param
+#include <sys/eventfd.h> //eventfd
 
 
 __thread EventLoop* t_loopInThisThread = 0;
@@ -22,7 +24,8 @@ EventLoop::EventLoop()
     ,quit_(false)
     ,threadId(gettid())
     ,epoller(new Epoller(this))
-    ,queue(this)
+    ,timerQueue(new TimerQueue(this))
+    ,wakeupChannel(new Channel(this,::eventfd(0,EFD_NONBLOCK | EFD_CLOEXEC)))
 {
     if(t_loopInThisThread)
     {
@@ -32,6 +35,9 @@ EventLoop::EventLoop()
     {
         t_loopInThisThread = this;
     }
+
+    wakeupChannel->setReadCallback(std::bind(&EventLoop::runFuncCallback,this));
+    wakeupChannel->enableReading();
 }
 
 EventLoop::~EventLoop()
@@ -66,7 +72,7 @@ void EventLoop::loop()
             channel->handleEvent();
         }
 
-        queue.doActiveTimer();
+        timerQueue->doActiveTimer();
     }
 
     isLooping = false;
@@ -93,11 +99,15 @@ void EventLoop::runInLoop(const FuncCallback& cb)
     {
         MutexLockGuard lock(mutex);
         funcCallbackList.push_back(cb);
+
+        wakeup();
     }
 }
 
 void EventLoop::runFuncCallback()
 {   
+    handleRead();
+
     FuncCallbackList tempList;
 
     {
@@ -111,14 +121,36 @@ void EventLoop::runFuncCallback()
     }
 }
 
-void EventLoop::runAt(const FuncCallback& cb,Timestamp when)
+void EventLoop::runAfter(const FuncCallback& cb,Timestamp when)
 {
-   queue.addTimer(cb,when,0);
+   timerQueue->addTimer(cb,when,0);
 }
 
 void EventLoop::runEvery(const FuncCallback& cb,int interval)
 {
-   queue.addTimer(cb,1,interval);
+   timerQueue->addTimer(cb,1,interval);
 }
+
+void EventLoop::wakeup()
+{
+    uint64_t one = 1;
+    ssize_t t = write(wakeupChannel->getfd(),&one,sizeof(one));
+    if(t != sizeof(one))
+    {
+        exit(0);
+    }
+}
+
+void EventLoop::handleRead()
+{
+    uint64_t one = 1;
+    ssize_t t = read(wakeupChannel->getfd(),&one,sizeof(one));
+    if( t != sizeof(one))
+    {
+        exit(0);
+    }
+}
+
+
 
 
