@@ -17,7 +17,7 @@ Channel::Channel(EventLoop *loop_,int fd_)
 
 Channel::~Channel()
 {
-
+    ::close(fd);
 }
 
 void Channel::handleEvent()
