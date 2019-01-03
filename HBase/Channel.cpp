@@ -10,6 +10,7 @@ Channel::Channel(EventLoop *loop_,int fd_)
 :loop(loop_)
 ,fd(fd_)
 ,event(0)
+,revent(0)
 ,index(-1)
 {
     
@@ -22,17 +23,22 @@ Channel::~Channel()
 
 void Channel::handleEvent()
 {
-    if(event & EPOLLERR)
+    if(revent & EPOLLERR)
     {
        if(errorCallback) errorCallback();
     }
 
-    if(event & (EPOLLIN | EPOLLPRI | EPOLLRDHUP ))
+    if((revent & EPOLLHUP) && !( revent & EPOLLIN))
+    {
+        if(closeCallback) closeCallback();
+    }
+
+    if(revent & (EPOLLIN | EPOLLPRI | EPOLLRDHUP ))
     {
         if(readCallback) readCallback();
     }
 
-    if(event & EPOLLOUT)
+    if(revent & EPOLLOUT)
     {
         if(writeCallback) writeCallback();
     }
@@ -41,4 +47,9 @@ void Channel::handleEvent()
 void Channel::update()
 {
     loop->updateChannel(this);
+}
+
+void Channel::disable()
+{
+    loop->removeChannel(this);
 }

@@ -52,6 +52,11 @@ void messageCallback(const TcpConnectionPtr& connPtr, char *buffer,int bufsize)
 	printf("rev: %s\n",buffer);
 }
 
+void closeCallback(const TcpConnectionPtr& connPtr)
+{
+	printf("peer disconnect\n");
+}
+
 int main()
 {
 	EventLoop loop;
@@ -81,6 +86,7 @@ int main()
 
 	TcpServer server("firstServer",g_loop,8888);
 	server.setMessageCallback(messageCallback);
+	server.setCloseCallback(closeCallback);
 	
 	loop.loop();
 

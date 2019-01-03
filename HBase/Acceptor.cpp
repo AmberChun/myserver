@@ -26,7 +26,11 @@ int Acceptor::createListenFd(int port_)
     localaddr.sin_addr.s_addr = htonl(INADDR_ANY);
     localaddr.sin_port = htons(port_);
     
-    bind(listenfd,(sockaddr *)&localaddr,sizeof(localaddr));
+    if(0 != bind(listenfd,(sockaddr *)&localaddr,sizeof(localaddr)))
+    {
+        printf("bind port: %d fail!\n",port_);
+        exit(0);
+    }
     
     listen(listenfd,maxConnNum);
 

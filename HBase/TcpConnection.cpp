@@ -10,6 +10,7 @@ TcpConnection::TcpConnection(const std::string& name,EventLoop* loop_
 {
     connChannel->setReadCallback(std::bind(&TcpConnection::handleRead,this));
     connChannel->setWriteCallback(std::bind(&TcpConnection::handleWrite,this));
+    connChannel->setCloseCallback(std::bind(&TcpConnection::handleClose,this));
     connChannel->enableReading();
 }
 
@@ -22,10 +23,23 @@ void TcpConnection::handleRead()
 {
     char buf[65535];
     ssize_t n = read(connChannel->getfd(),buf,sizeof(buf));
-    messageCallback(shared_from_this(),buf,n);
+    if(n > 0)
+    {
+        messageCallback(shared_from_this(),buf,n);
+    }
+    else if(n == 0)
+    {
+        handleClose();
+    }
 }
 
 void TcpConnection::handleWrite()
 {
 
+}
+
+void TcpConnection::handleClose()
+{
+    connChannel->disableAll();
+    closeCallback(shared_from_this());
 }

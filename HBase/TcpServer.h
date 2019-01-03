@@ -16,6 +16,7 @@ public:
 
     void setMessageCallback(const MessageCallback& cb) { messageCallback = cb;}
     void setConnectCallback(const ConnectCallback& cb) { connectCallback = cb;}
+    void setCloseCallback(const CloseCallback& cb) { closeCallback = cb;}
     
 private:
     EventLoop * loop;
@@ -26,4 +27,5 @@ private:
 
     MessageCallback messageCallback;
     ConnectCallback connectCallback;
+    CloseCallback closeCallback;
 };

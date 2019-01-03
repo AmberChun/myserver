@@ -15,9 +15,11 @@ public:
 
     void handleRead();
     void handleWrite();
+    void handleClose();
 
     void setMessageCallback(const MessageCallback& cb) { messageCallback = cb;}
     void setConnectCallback(const ConnectCallback& cb) { connectCallback = cb;}
+    void setCloseCallback(const CloseCallback& cb) { closeCallback = cb;}
 
 private:
     enum ConnState
@@ -35,4 +37,5 @@ private:
 
     MessageCallback messageCallback;
     ConnectCallback connectCallback;
+    CloseCallback closeCallback;
 };

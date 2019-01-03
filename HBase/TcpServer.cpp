@@ -30,4 +30,5 @@ TcpServer::~TcpServer()
      connMap[connName] = connSPtr;
      connSPtr->setConnectCallback(connectCallback);
      connSPtr->setMessageCallback(messageCallback);
+     connSPtr->setCloseCallback(closeCallback);
  }

@@ -4,7 +4,7 @@
 
 #include <sys/epoll.h>
 
-static int MY_EPOLL_MOD = EPOLLET;
+static int MY_EPOLL_MOD = 0;//EPOLLET;
 
 Epoller::Epoller(EventLoop * loop_)
 :loop(loop_)
@@ -14,7 +14,7 @@ Epoller::Epoller(EventLoop * loop_)
 
 Epoller::~Epoller()
 {
-
+    close(epollfd);
 }
 
 void Epoller::updateChannel(Channel * chl)
@@ -24,22 +24,24 @@ void Epoller::updateChannel(Channel * chl)
         return;
     }
 
+    struct epoll_event et;
+    et.data.fd = chl->getfd();
+    et.events = chl->getevent() | MY_EPOLL_MOD;
+
     ChannelMap::iterator it = channelMap.find(chl->getfd());
     if(it == channelMap.end())
     {
-        struct epoll_event et;
-        et.data.fd = chl->getfd();
-        et.events = chl->getevent() | MY_EPOLL_MOD;
         channelMap[et.data.fd] = chl;
-        eventList.push_back(et);
-        chl->setIndex((int)eventList.size() - 1);
-
         epoll_ctl(epollfd, EPOLL_CTL_ADD, chl->getfd(), &et);
     }
     else
     {
-        eventList[chl->getIndex()].events = chl->getevent() | MY_EPOLL_MOD;
-        epoll_ctl(epollfd, EPOLL_CTL_MOD, chl->getfd(), &eventList[chl->getIndex()]);
+        epoll_ctl(epollfd, EPOLL_CTL_MOD, chl->getfd(), &et);
+    }
+
+    if(channelMap.size() > eventList.size())
+    {
+        eventList.resize(channelMap.size() * 2);
     }
 }
 
@@ -56,22 +58,13 @@ void Epoller::removeChannel(Channel * chl)
         channelMap.erase(it);
     }
 
-    std::vector<struct epoll_event>::iterator iter = eventList.begin();
-    while(iter != eventList.end())
-    {
-        if(iter->data.fd == chl->getfd())
-        {
-            eventList.erase(iter);
-            break;
-        }
-    }
-
     epoll_ctl(epollfd, EPOLL_CTL_DEL, chl->getfd(), NULL);
 }
 
 void Epoller::runOnce(ChannelList* activeChannels)
 {
-    int nfds = epoll_wait(epollfd, &eventList[0], (int)eventList.size(), 0);
+    //memset(&eventList[0],0,(int)eventList.size());
+    int nfds = epoll_wait(epollfd, &*eventList.begin(), (int)eventList.size(), 0);
     if(nfds > 0)
     {
         fillActiveChannels(nfds,activeChannels);
@@ -85,6 +78,7 @@ void Epoller::runOnce(ChannelList* activeChannels)
         ChannelMap::const_iterator it = channelMap.find(eventList[i].data.fd);
         if( it != channelMap.end())
         {
+            it->second->setRevent(eventList[i].events);
             activeChannels->push_back(it->second);
         }
     }

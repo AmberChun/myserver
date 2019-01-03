@@ -89,6 +89,12 @@ void EventLoop::updateChannel(Channel * channel)
     epoller->updateChannel(channel);
 }
 
+void EventLoop::removeChannel(Channel * channel)
+{
+    assert(channel->getLoop() == this);
+    epoller->removeChannel(channel);
+}
+
 void EventLoop::runInLoop(const FuncCallback& cb)
 {
     if(isInLoopThread())

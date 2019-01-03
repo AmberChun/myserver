@@ -25,6 +25,7 @@ public:
 
     //channel相关
     void updateChannel(Channel * channel);
+    void removeChannel(Channel * channel);
 
     //其他线程可调用
     void runInLoop(const FuncCallback& cb);
