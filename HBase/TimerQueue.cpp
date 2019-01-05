@@ -2,17 +2,6 @@
 
 #include <sys/timerfd.h>
 
-namespace Base
-{
-    static Timestamp Now()
-    {
-        struct timeval tv;
-        gettimeofday(&tv,NULL);
-        return tv.tv_sec;
-    }
-}
-
-
 Timer::Timer(TimerCallback cb_,Timestamp when,Timestamp interval_,int countMax_)
 :cb(cb_)
 ,expiration(when)
@@ -72,7 +61,7 @@ TimerQueue::~TimerQueue()
 
 void TimerQueue::addTimer(const TimerCallback& cb,Timestamp when,Timestamp interval,int countMax_)
 {
-    Timestamp now = Base::Now();
+    Timestamp now = Now();
     Timer timer(cb,now + when,interval,countMax_);
 
     {
@@ -87,7 +76,7 @@ void TimerQueue::update()
     recycleTimer();
     uint64_t val = 0;
     val = read(timerChannel.getfd(),&val,sizeof(val));
-    Timestamp now = Base::Now();
+    Timestamp now = Now();
     TimerMultiMap::iterator it = timerMap.lower_bound(now);
     if(it == timerMap.begin())
     {
@@ -100,7 +89,7 @@ void TimerQueue::update()
 
 void TimerQueue::doActiveTimer()
 {
-    Timestamp now = Base::Now();
+    Timestamp now = Now();
     for(ActiveTimerList::iterator it = activeTimerList.begin(); it != activeTimerList.end();++it)
     {
         it->second.runCallback();
@@ -126,4 +115,12 @@ void TimerQueue::recycleTimer()
 
     recycleTimerList.clear();
 }
+
+Timestamp TimerQueue::Now()
+{
+    struct timeval tv;
+    gettimeofday(&tv,NULL);
+    return tv.tv_sec;
+}
+
 

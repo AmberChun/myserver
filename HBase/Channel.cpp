@@ -21,7 +21,7 @@ Channel::~Channel()
     ::close(fd);
 }
 
-void Channel::handleEvent()
+void Channel::handleEvent(const Timestamp& now)
 {
     if(revent & EPOLLERR)
     {

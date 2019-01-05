@@ -4,14 +4,6 @@
 #include "TimerQueue.h"
 
 
-#include <stdlib.h> //exit
-#include <assert.h> //assert
-#include <stdio.h> //printf
-#include <unistd.h> //syscall
-#include <sys/syscall.h> //syscall‘s param
-#include <sys/eventfd.h> //eventfd
-
-
 __thread EventLoop* t_loopInThisThread = 0;
 
 static pid_t gettid()
@@ -66,10 +58,10 @@ void EventLoop::loop()
     while(!quit_)
     {
         activeChannels.clear();
-        epoller->runOnce(&activeChannels);
+        Timestamp now = epoller->runOnce(&activeChannels);
         for (Channel* channel : activeChannels)
         {
-            channel->handleEvent();
+            channel->handleEvent(now);
         }
 
         timerQueue->doActiveTimer();

@@ -1,10 +1,11 @@
 #include "Epoller.h"
 #include "Channel.h"
 #include "EventLoop.h"
+#include "TimerQueue.h"
 
 #include <sys/epoll.h>
 
-static int MY_EPOLL_MOD = 0;//EPOLLET;
+static int MY_EPOLL_MOD = 0;// 0 为LT 或者 EPOLLET;
 
 Epoller::Epoller(EventLoop * loop_)
 :loop(loop_)
@@ -61,14 +62,17 @@ void Epoller::removeChannel(Channel * chl)
     epoll_ctl(epollfd, EPOLL_CTL_DEL, chl->getfd(), NULL);
 }
 
-void Epoller::runOnce(ChannelList* activeChannels)
+Timestamp Epoller::runOnce(ChannelList* activeChannels)
 {
     //memset(&eventList[0],0,(int)eventList.size());
     int nfds = epoll_wait(epollfd, &*eventList.begin(), (int)eventList.size(), 0);
+    Timestamp now = TimerQueue::Now();
     if(nfds > 0)
     {
         fillActiveChannels(nfds,activeChannels);
     }
+
+    return now;
 }
 
  void Epoller::fillActiveChannels(int numEvents,ChannelList* activeChannels) const

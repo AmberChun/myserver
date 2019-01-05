@@ -13,7 +13,7 @@ public:
     Channel(EventLoop *loop_,int fd_);
     ~Channel();
 
-    void handleEvent();
+    void handleEvent(const Timestamp& now);
 
     void setReadCallback(const EventCallback& cb)
     {

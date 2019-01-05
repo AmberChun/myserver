@@ -3,45 +3,46 @@
 #include "base.h"
 #include "Mutex.h"
 
-
 class Channel;
 class Epoller;
 class MutexLock;
 class TimerQueue;
 class EventLoop : public Nocopyable
 {
-public:
+  public:
     typedef std::vector<Channel *> ChannelList;
-    typedef std::function<void ()> FuncCallback;
+    typedef std::function<void()> FuncCallback;
     typedef std::vector<FuncCallback> FuncCallbackList;
-public:
+
+  public:
     EventLoop();
     ~EventLoop();
 
-    static EventLoop* getEventLoopOfCurrentThread();
-    
+    static EventLoop *getEventLoopOfCurrentThread();
+
     void loop();
     void quit();
 
     //channel相关
-    void updateChannel(Channel * channel);
-    void removeChannel(Channel * channel);
+    void updateChannel(Channel *channel);
+    void removeChannel(Channel *channel);
 
     //其他线程可调用
-    void runInLoop(const FuncCallback& cb);
+    void runInLoop(const FuncCallback &cb);
 
-    void runAfter(const FuncCallback& cb,Timestamp when);
-    void runEvery(const FuncCallback& cb,int interval);
+    void runAfter(const FuncCallback &cb, Timestamp when);
+    void runEvery(const FuncCallback &cb, int interval);
 
-private:
     bool isInLoopThread();
+  private:
+    
     //此调用中不得再往funcCallbackList容器中push新的内容
     void runFuncCallback();
 
-    void wakeup(); //runInLoop 调用
+    void wakeup();     //runInLoop 调用
     void handleRead(); //wakeupChannel 的读事件调用
 
-private:
+  private:
     bool isLooping;
     bool quit_;
     const pid_t threadId;
@@ -54,5 +55,5 @@ private:
     std::unique_ptr<TimerQueue> timerQueue;
 
     //EventLoop的唤醒功能
-    std::unique_ptr<Channel> wakeupChannel; 
+    std::unique_ptr<Channel> wakeupChannel;
 };

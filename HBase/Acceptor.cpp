@@ -39,7 +39,7 @@ int Acceptor::createListenFd(int port_)
 
 Acceptor::~Acceptor()
 {
-    close(acceptChannel->getfd());
+    ::close(acceptChannel->getfd());
 }
 
 void Acceptor::handleRead()

@@ -35,6 +35,8 @@ public:
     typedef std::vector<Entry> ActiveTimerList;
     typedef std::vector<Entry> RecycleTimerList;
     typedef std::multimap<Timestamp,Timer> TimerMultiMap;
+public:
+    static Timestamp Now();
 
 public:
     TimerQueue(EventLoop *loop_);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "base.h"
+#include "Buffer.h"
 
 class Channel;
 class EventLoop;
@@ -21,14 +22,17 @@ public:
     void setConnectCallback(const ConnectCallback& cb) { connectCallback = cb;}
     void setCloseCallback(const CloseCallback& cb) { closeCallback = cb;}
 
+    //保证线程安全，如果在loop线程中，那么直接执行，如果不在，则加入loop的执行函数中
+    void send(const std::string& message);
+    void sendInLoop(const std::string& message);
 private:
     enum ConnState
     {
         kConnecting = 0,
         kConnected = 1,
-
     };
 
+    EventLoop * loop;
     int state;
     std::string connName;
     std::unique_ptr<Channel> connChannel;
@@ -38,4 +42,7 @@ private:
     MessageCallback messageCallback;
     ConnectCallback connectCallback;
     CloseCallback closeCallback;
+
+    Buffer inputBuff;
+    Buffer outputBuff;
 };

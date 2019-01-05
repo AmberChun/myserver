@@ -3,6 +3,7 @@
 #include "Channel.h"
 #include "Acceptor.h"
 #include "TcpServer.h"
+#include "Buffer.h"
 
 #include <sys/timerfd.h>
 #include <sys/syscall.h>
@@ -47,9 +48,13 @@ void acceptCallback(int connfd, const struct sockaddr_in&  peer_addr)
 	printf("peer address: %s\n",inet_ntoa(peer_addr.sin_addr));
 }
 
-void messageCallback(const TcpConnectionPtr& connPtr, char *buffer,int bufsize)
+void messageCallback(const TcpConnectionPtr& connPtr,Buffer * buff)
 {
-	printf("rev: %s\n",buffer);
+	std::string str("");
+	while( (str = buff->retrieveAsString()) != "")
+	{
+		printf("rev: %s\n",str.c_str());
+	}
 }
 
 void closeCallback(const TcpConnectionPtr& connPtr)

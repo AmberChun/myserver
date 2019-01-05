@@ -24,7 +24,7 @@ public:
     void fillActiveChannels(int numEvents,
                           ChannelList* activeChannels) const;
 
-    void runOnce(ChannelList* activeChannels);
+    Timestamp runOnce(ChannelList* activeChannels);
 private:
     EventLoop * loop;
     int epollfd;
