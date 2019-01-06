@@ -14,7 +14,7 @@
 #include <assert.h> //assert
 #include <stdlib.h> //exit
 #include <stdio.h> //printf
-#include <unistd.h> //syscall
+#include <unistd.h> //syscall\fork、getpid、close
 #include <sys/syscall.h> //syscall‘s param
 #include <sys/eventfd.h> //eventfd
 
@@ -29,6 +29,8 @@ typedef std::shared_ptr<TcpConnection> TcpConnectionPtr;
 typedef std::function<void (const TcpConnectionPtr& connPtr)> ConnectCallback;
 typedef std::function<void (const TcpConnectionPtr& connPtr)> CloseCallback;
 typedef std::function<void (const TcpConnectionPtr& connPtr, Buffer * buff)> MessageCallback;
+
+#define MAX_DELAY_TIME 512
 
 
 

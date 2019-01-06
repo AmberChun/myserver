@@ -25,6 +25,8 @@ public:
     //保证线程安全，如果在loop线程中，那么直接执行，如果不在，则加入loop的执行函数中
     void send(const std::string& message);
     void sendInLoop(const std::string& message);
+
+    void connectEstablished();
 private:
     enum ConnState
     {

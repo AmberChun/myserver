@@ -12,6 +12,7 @@ Acceptor::Acceptor(EventLoop * loop_,int port_,const NewConnectionCallback& cb_,
 ,acceptChannel(new Channel(loop_,createListenFd(port_)))
 ,cb(cb_)
 {
+    memset(&localaddr,0,sizeof localaddr);
     acceptChannel->setReadCallback(std::bind(&Acceptor::handleRead,this));
     acceptChannel->enableReading();
 }

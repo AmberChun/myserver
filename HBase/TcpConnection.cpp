@@ -51,7 +51,10 @@ void TcpConnection::handleWrite()
 void TcpConnection::handleClose()
 {
     connChannel->disableAll();
-    closeCallback(shared_from_this());
+    if(closeCallback)
+    {
+        closeCallback(shared_from_this());
+    }
 }
 
 void TcpConnection::send(const std::string& message)
@@ -81,5 +84,13 @@ void TcpConnection::sendInLoop(const std::string& message)
         {
             connChannel->enableWriting();
         }
+    }
+}
+
+void TcpConnection::connectEstablished()
+{
+    if(connectCallback)
+    {
+        connectCallback(shared_from_this());
     }
 }

@@ -4,6 +4,7 @@
 #include "Acceptor.h"
 #include "TcpServer.h"
 #include "Buffer.h"
+#include "TcpClient.h"
 
 #include <sys/timerfd.h>
 #include <sys/syscall.h>
@@ -62,7 +63,12 @@ void closeCallback(const TcpConnectionPtr& connPtr)
 	printf("peer disconnect\n");
 }
 
-int main()
+void connectCallback(const TcpConnectionPtr& connPtr)
+{
+	printf("client connect\n");
+}
+
+int main(int argc,char *argv[])
 {
 	EventLoop loop;
 	g_loop = &loop;
@@ -88,12 +94,25 @@ int main()
 	// newthread.start();
 
 	//Acceptor acceptor(g_loop,8888,acceptCallback);
+	if(argc == 2)
+	{
+		TcpServer server("firstServer",g_loop,atoi(argv[1]));
+		server.setMessageCallback(messageCallback);
+		server.setCloseCallback(closeCallback);
+		server.setConnectCallback(connectCallback);
 
-	TcpServer server("firstServer",g_loop,8888);
-	server.setMessageCallback(messageCallback);
-	server.setCloseCallback(closeCallback);
-	
-	loop.loop();
+		loop.loop();
+	}
+	else
+	{
+		TcpClient client("firstClient",g_loop,"127.0.0.1",8888);
+		client.setMessageCallback(messageCallback);
+		client.setCloseCallback(closeCallback);
+
+		client.connect();
+
+		loop.loop();
+	}
 
 	return 0;
 }
