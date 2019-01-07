@@ -32,5 +32,9 @@ typedef std::function<void (const TcpConnectionPtr& connPtr, Buffer * buff)> Mes
 
 #define MAX_DELAY_TIME 512
 
+class Timer;
+typedef std::shared_ptr<Timer> TimerSPtr;
+typedef std::weak_ptr<Timer> TimerWPtr;
+
 
 

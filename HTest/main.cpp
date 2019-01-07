@@ -105,11 +105,14 @@ int main(int argc,char *argv[])
 	}
 	else
 	{
-		TcpClient client("firstClient",g_loop,"127.0.0.1",8888);
-		client.setMessageCallback(messageCallback);
-		client.setCloseCallback(closeCallback);
+		{
+			TcpClient client("firstClient",g_loop,"127.0.0.1",8888);
+			client.setMessageCallback(messageCallback);
+			client.setCloseCallback(closeCallback);
 
-		client.connect();
+			client.connect();
+		}
+
 
 		loop.loop();
 	}

@@ -1,5 +1,4 @@
 #include "TimerQueue.h"
-
 #include <sys/timerfd.h>
 
 Timer::Timer(TimerCallback cb_,Timestamp when,Timestamp interval_,int countMax_)
@@ -9,6 +8,7 @@ Timer::Timer(TimerCallback cb_,Timestamp when,Timestamp interval_,int countMax_)
 ,repeat(interval > 0.0)
 ,count(0)
 ,countMax(countMax_)
+,disable(false)
 {
 
 }
@@ -20,12 +20,17 @@ Timer::~Timer()
 
 void Timer::runCallback()
 {
-    if(countMax > 0 && count < countMax)
+    if(disable)
     {
-        
+        return;
     }
 
-    cb();
+    if(countMax > 0 && count < countMax)
+    {
+        ++count;
+    }
+
+    if(cb) cb();
 }
 
 Timestamp Timer::restart(Timestamp now)
@@ -38,7 +43,7 @@ Timestamp Timer::restart(Timestamp now)
 
 bool Timer::repeated()
 {
-    return repeat && (countMax > 0 ? count < countMax : true );
+    return !disable && repeat && (countMax > 0 ? count < countMax : true );
 }
 
 TimerQueue::TimerQueue(EventLoop *loop_)
@@ -59,15 +64,17 @@ TimerQueue::~TimerQueue()
     timerChannel.disableAll();
 }
 
-void TimerQueue::addTimer(const TimerCallback& cb,Timestamp when,Timestamp interval,int countMax_)
+TimerWPtr TimerQueue::addTimer(const TimerCallback& cb,Timestamp when,Timestamp interval,int countMax_)
 {
     Timestamp now = Now();
-    Timer timer(cb,now + when,interval,countMax_);
+    TimerSPtr timer(new Timer(cb,now + when,interval,countMax_));
 
     {
         MutexLockGuard lock(mutex);
         timerMap.insert(std::make_pair(now + when,timer));
     }
+
+    return timer;
 }
 
 void TimerQueue::update()
@@ -92,11 +99,11 @@ void TimerQueue::doActiveTimer()
     Timestamp now = Now();
     for(ActiveTimerList::iterator it = activeTimerList.begin(); it != activeTimerList.end();++it)
     {
-        it->second.runCallback();
+        it->second->runCallback();
 
-        if(it->second.repeated())
+        if(it->second->repeated())
         {
-            Timestamp ts = it->second.restart(now);
+            Timestamp ts = it->second->restart(now);
             it->first = ts;
             recycleTimerList.push_back(*it);
         }

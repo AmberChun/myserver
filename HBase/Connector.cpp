@@ -1,5 +1,6 @@
 #include "Connector.h"
 #include "EventLoop.h"
+#include "TimerQueue.h"
 #include <sys/socket.h> //使用套接字主要几个函数
 #include <arpa/inet.h>  //使用inet_ntop这一类的地址转换函数
 
@@ -20,7 +21,13 @@ Connector::Connector(EventLoop * loop_,const std::string& ip_, int server_port_,
 
 Connector::~Connector()
 {
-
+    if(connState == CS_CONNECTING)
+    {
+        if(TimerSPtr p = timerWPtr.lock())
+        {
+            p->Disable();
+        }
+    }
 }
 
 void Connector::connect()
@@ -59,5 +66,6 @@ void Connector::connect()
 void Connector::retry()
 {
     retrydelayMs = retrydelayMs == 0 ? 1: (retrydelayMs * 2 > MAX_DELAY_TIME ?  MAX_DELAY_TIME : retrydelayMs * 2);
-    loop->runAfter(std::bind(&Connector::connect,this),retrydelayMs);
+    timerWPtr = loop->runAfter(std::bind(&Connector::connect,this),retrydelayMs);
+    connState = CS_CONNECTING;
 }

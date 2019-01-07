@@ -9,7 +9,8 @@ public:
     enum ConnectState
     {
         CS_NO_CONNECT = 0,  //未连接
-        CS_CONNECTED = 1,   //已连接
+        CS_CONNECTING = 1,  //正在尝试连接(定时器)
+        CS_CONNECTED = 2,   //已连接
     };
 public:
     Connector(EventLoop * loop_,const std::string& ip_,int server_port_,const NewConnectionCallback& cb_);
@@ -35,6 +36,7 @@ private:
     struct sockaddr_in servaddr;
     struct sockaddr_in localaddr;
     Timestamp retrydelayMs;
+    TimerWPtr timerWPtr;
 
     int connState;
 };

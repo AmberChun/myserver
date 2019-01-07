@@ -119,14 +119,14 @@ void EventLoop::runFuncCallback()
     }
 }
 
-void EventLoop::runAfter(const FuncCallback& cb,Timestamp when)
+TimerWPtr EventLoop::runAfter(const FuncCallback& cb,Timestamp when)
 {
-   timerQueue->addTimer(cb,when,0);
+   return timerQueue->addTimer(cb,when,0);
 }
 
-void EventLoop::runEvery(const FuncCallback& cb,int interval)
+TimerWPtr EventLoop::runEvery(const FuncCallback& cb,int interval)
 {
-   timerQueue->addTimer(cb,1,interval);
+   return timerQueue->addTimer(cb,1,interval);
 }
 
 void EventLoop::wakeup()

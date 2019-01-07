@@ -30,8 +30,8 @@ class EventLoop : public Nocopyable
     //其他线程可调用
     void runInLoop(const FuncCallback &cb);
 
-    void runAfter(const FuncCallback &cb, Timestamp when);
-    void runEvery(const FuncCallback &cb, int interval);
+    TimerWPtr runAfter(const FuncCallback &cb, Timestamp when);
+    TimerWPtr runEvery(const FuncCallback &cb, int interval);
 
     bool isInLoopThread();
   private:
