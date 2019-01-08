@@ -3,6 +3,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <deque>
 #include <functional>
 #include <string>
 #include "Nocopyable.h"
