@@ -5,6 +5,9 @@
 #include "TcpServer.h"
 #include "Buffer.h"
 #include "TcpClient.h"
+#include "NoReturnThreadPool.h"
+#include "ThreadPool.h"
+#include "TcpConnection.h"
 
 #include <sys/timerfd.h>
 #include <sys/syscall.h>
@@ -13,6 +16,8 @@
 //TFD_TIMER_ABSTIME
 
 EventLoop* g_loop;
+ThreadPool* g_pool;
+NoReturnThreadPool* g_NoReturnPool;
 
 void timeout()
 {
@@ -55,6 +60,7 @@ void messageCallback(const TcpConnectionPtr& connPtr,Buffer * buff)
 	while( (str = buff->retrieveAsString()) != "")
 	{
 		printf("rev: %s\n",str.c_str());
+		//g_NoReturnPool->AddNewTask([connPtr]{ connPtr->send("msg back\n");});
 	}
 }
 
@@ -68,11 +74,32 @@ void connectCallback(const TcpConnectionPtr& connPtr)
 	printf("client connect\n");
 }
 
+void clientConnectCallback(const TcpConnectionPtr& connPtr)
+{
+	// g_NoReturnPool->AddNewTask(
+	// 	[connPtr]
+	// 	{ 
+	// 		for(int i = 0 ; i < 100; ++i)
+	// 		{
+	// 			char buf[64] = {0};
+	// 			snprintf(buf,sizeof(buf),"msg back %d\n;",i);
+	// 			connPtr->send(buf);
+	// 			sleep(2);
+	// 		}
+	// 	}
+	// );
+}
+
 int main(int argc,char *argv[])
 {
 	EventLoop loop;
 	g_loop = &loop;
 
+	ThreadPool pool(4);
+	g_pool = &pool;
+
+	NoReturnThreadPool noreturnpool(4);
+	g_NoReturnPool = &noreturnpool;
 	//printf(" main threadId: %d\n",static_cast<pid_t>(::syscall(SYS_gettid)));
 
 	// int fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
@@ -93,7 +120,6 @@ int main(int argc,char *argv[])
 	// Thread newthread(&threadFunc);
 	// newthread.start();
 
-	//Acceptor acceptor(g_loop,8888,acceptCallback);
 	if(argc == 2)
 	{
 		TcpServer server("firstServer",g_loop,atoi(argv[1]));
@@ -108,6 +134,7 @@ int main(int argc,char *argv[])
 		TcpClient client("firstClient",g_loop,"127.0.0.1",8888);
 		client.setMessageCallback(messageCallback);
 		client.setCloseCallback(closeCallback);
+		client.setConnectCallback(clientConnectCallback);
 		client.connect();
 
 

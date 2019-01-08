@@ -132,7 +132,7 @@ TimerWPtr EventLoop::runEvery(const FuncCallback& cb,int interval)
 void EventLoop::wakeup()
 {
     uint64_t one = 1;
-    ssize_t t = write(wakeupChannel->getfd(),&one,sizeof(one));
+    ssize_t t = ::write(wakeupChannel->getfd(),&one,sizeof(one));
     if(t != sizeof(one))
     {
         exit(0);
