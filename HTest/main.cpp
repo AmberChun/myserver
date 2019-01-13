@@ -8,6 +8,7 @@
 #include "NoReturnThreadPool.h"
 #include "ThreadPool.h"
 #include "TcpConnection.h"
+#include "TimeWheel.h"
 
 #include <sys/timerfd.h>
 #include <sys/syscall.h>
@@ -29,6 +30,12 @@ void timeout2()
 {
 	printf("Timeout2!\n");
 	//g_loop->quit();
+}
+
+void count()
+{
+	static int count = 0;
+	printf("count:%d\n",++count);
 }
 
 void func()
@@ -102,11 +109,6 @@ int main(int argc,char *argv[])
 	g_NoReturnPool = &noreturnpool;
 	//printf(" main threadId: %d\n",static_cast<pid_t>(::syscall(SYS_gettid)));
 
-	// int fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
-	// Channel chl(&loop,fd);
-	// chl.setReadCallback(timeout);
-	// chl.enableReading();
-
 	// //struct timespec now;
 	// //clock_gettime(CLOCK_MONOTONIC, &now);
 	// struct itimerspec howlong;
@@ -115,31 +117,41 @@ int main(int argc,char *argv[])
 	// howlong.it_value.tv_sec = 2;
 	// timerfd_settime(fd,0,&howlong,NULL);
 
-	//loop.runEvery(timeout,2);
+	loop.runAfter(timeout,10);
+	//loop.runEvery(count,1);
 
 	// Thread newthread(&threadFunc);
 	// newthread.start();
 
-	if(argc == 2)
-	{
-		TcpServer server("firstServer",g_loop,atoi(argv[1]));
-		server.setMessageCallback(messageCallback);
-		server.setCloseCallback(closeCallback);
-		server.setConnectCallback(connectCallback);
 
-		loop.loop();
-	}
-	else
-	{
-		TcpClient client("firstClient",g_loop,"127.0.0.1",8888);
-		client.setMessageCallback(messageCallback);
-		client.setCloseCallback(closeCallback);
-		client.setConnectCallback(clientConnectCallback);
-		client.connect();
+	//TCP test----------------------------------------------------------
+	// if(argc == 2)
+	// {
+	// 	TcpServer server("firstServer",g_loop,atoi(argv[1]));
+	// 	server.setMessageCallback(messageCallback);
+	// 	server.setCloseCallback(closeCallback);
+	// 	server.setConnectCallback(connectCallback);
+
+	// 	loop.loop();
+	// }
+	// else
+	// {
+	// 	TcpClient client("firstClient",g_loop,"127.0.0.1",8888);
+	// 	client.setMessageCallback(messageCallback);
+	// 	client.setCloseCallback(closeCallback);
+	// 	client.setConnectCallback(clientConnectCallback);
+	// 	client.connect();
 
 
-		loop.loop();
-	}
+	// 	loop.loop();
+	// }
+	//TCP test----------------------------------------------------------
+
+	TimeWheel wheel(g_loop,3,5,1);
+
+	wheel.addTimer(timeout2,10);
+
+	loop.loop();
 
 	return 0;
 }

@@ -4,6 +4,7 @@
 #include <map>
 #include <set>
 #include <deque>
+#include <list>
 #include <functional>
 #include <string>
 #include "Nocopyable.h"
@@ -36,6 +37,8 @@ typedef std::function<void (const TcpConnectionPtr& connPtr, Buffer * buff)> Mes
 class Timer;
 typedef std::shared_ptr<Timer> TimerSPtr;
 typedef std::weak_ptr<Timer> TimerWPtr;
+
+typedef std::function<void()> FuncCallback;
 
 
 
