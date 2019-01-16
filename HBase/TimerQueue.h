@@ -1,7 +1,6 @@
 #pragma once
 
 #include "base.h"
-#include "Channel.h"
 #include "Mutex.h"
 
 //先做一个最低精度为秒的定时器
@@ -9,6 +8,8 @@
 typedef std::function<void ()> TimerCallback;
 typedef uint64_t TimeID;
 
+class EventLoop;
+class Channel;
 class Timer //: public Nocopyable
 {
 public:
@@ -56,7 +57,7 @@ public:
 
     void recycleTimer();
 private:
-    Channel timerChannel;
+    std::unique_ptr<Channel> timerChannel;
     TimerMultiMap timerMap;
     ActiveTimerList activeTimerList;
     RecycleTimerList recycleTimerList;

@@ -3,7 +3,6 @@
 #include "base.h"
 
 class EventLoop;
-
 class Channel : public Nocopyable
 {
 public:

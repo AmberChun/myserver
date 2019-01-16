@@ -30,7 +30,7 @@ TimeWheel::TimeWheel(EventLoop * loop, int circle_num,int grid_num,int min_time_
 
 TimeWheel::~TimeWheel()
 {
-
+    channel->disableAll();
 }
 
 bool TimeWheel::addTimer(const FuncCallback& cb,int after_time)

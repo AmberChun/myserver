@@ -27,11 +27,14 @@ public:
     void sendInLoop(const std::string& message);
 
     void connectEstablished();
+
+    const std::string& getName() { return connName;}
 private:
     enum ConnState
     {
         kConnecting = 0,
         kConnected = 1,
+        kConnectClose = 2,
     };
 
     EventLoop * loop;

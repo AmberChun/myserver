@@ -1,4 +1,6 @@
 #include "TimerQueue.h"
+#include "EventLoop.h"
+#include "Channel.h"
 #include <sys/timerfd.h>
 
 Timer::Timer(TimerCallback cb_,Timestamp when,Timestamp interval_,int countMax_)
@@ -47,21 +49,21 @@ bool Timer::repeated()
 }
 
 TimerQueue::TimerQueue(EventLoop *loop_)
-:timerChannel(loop_,::timerfd_create(CLOCK_MONOTONIC,TFD_NONBLOCK | TFD_CLOEXEC))
+:timerChannel(new Channel(loop_,::timerfd_create(CLOCK_MONOTONIC,TFD_NONBLOCK | TFD_CLOEXEC)))
 {
     struct itimerspec howlong;
     memset(&howlong,0,sizeof(howlong));
     howlong.it_value.tv_sec = 1;
     howlong.it_interval.tv_sec = 1;
-    ::timerfd_settime(timerChannel.getfd(),0,&howlong,NULL);
+    ::timerfd_settime(timerChannel->getfd(),0,&howlong,NULL);
  
-    timerChannel.setReadCallback(std::bind(&TimerQueue::update,this));
-    timerChannel.enableReading();
+    timerChannel->setReadCallback(std::bind(&TimerQueue::update,this));
+    timerChannel->enableReading();
 }
 
 TimerQueue::~TimerQueue()
 {
-    timerChannel.disableAll();
+    timerChannel->disableAll();
 }
 
 TimerWPtr TimerQueue::addTimer(const TimerCallback& cb,Timestamp when,Timestamp interval,int countMax_)
@@ -82,7 +84,7 @@ void TimerQueue::update()
     MutexLockGuard lock(mutex);
     recycleTimer();
     uint64_t val = 0;
-    val = read(timerChannel.getfd(),&val,sizeof(val));
+    val = read(timerChannel->getfd(),&val,sizeof(val));
     Timestamp now = Now();
     TimerMultiMap::iterator it = timerMap.lower_bound(now);
     if(it == timerMap.begin())

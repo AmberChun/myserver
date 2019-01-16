@@ -73,16 +73,17 @@ void messageCallback(const TcpConnectionPtr& connPtr,Buffer * buff)
 
 void closeCallback(const TcpConnectionPtr& connPtr)
 {
-	printf("peer disconnect\n");
+	printf("client disconnect connName:%s\n",connPtr->getName().c_str());
 }
 
 void connectCallback(const TcpConnectionPtr& connPtr)
 {
-	printf("client connect\n");
+	printf("client connect connName:%s\n",connPtr->getName().c_str());
 }
 
 void clientConnectCallback(const TcpConnectionPtr& connPtr)
 {
+	printf("connName:%s\n",connPtr->getName().c_str());
 	// g_NoReturnPool->AddNewTask(
 	// 	[connPtr]
 	// 	{ 
@@ -97,12 +98,27 @@ void clientConnectCallback(const TcpConnectionPtr& connPtr)
 	// );
 }
 
+void createThreadFunc(int index)
+{
+	for(int i = index * 100; i < (index + 1) * 100;++i)
+	{
+		char buf[32];
+    	snprintf(buf,sizeof(buf),"client#%d",i);
+
+		TcpClient client(buf,g_loop,"127.0.0.1",8888);
+	// client.setMessageCallback(messageCallback);
+	// client.setCloseCallback(closeCallback);
+	// client.setConnectCallback(clientConnectCallback);
+		client.connect();
+	}
+}
+
 int main(int argc,char *argv[])
 {
 	EventLoop loop;
 	g_loop = &loop;
 
-	ThreadPool pool(4);
+	ThreadPool pool(5);
 	g_pool = &pool;
 
 	NoReturnThreadPool noreturnpool(4);
@@ -117,7 +133,7 @@ int main(int argc,char *argv[])
 	// howlong.it_value.tv_sec = 2;
 	// timerfd_settime(fd,0,&howlong,NULL);
 
-	loop.runAfter(timeout,10);
+	// loop.runAfter(timeout,10);
 	//loop.runEvery(count,1);
 
 	// Thread newthread(&threadFunc);
@@ -125,31 +141,36 @@ int main(int argc,char *argv[])
 
 
 	//TCP test----------------------------------------------------------
-	// if(argc == 2)
-	// {
-	// 	TcpServer server("firstServer",g_loop,atoi(argv[1]));
-	// 	server.setMessageCallback(messageCallback);
-	// 	server.setCloseCallback(closeCallback);
-	// 	server.setConnectCallback(connectCallback);
+	if(argc == 2)
+	{
+		TcpServer server("firstServer",g_loop,8888);
+		server.setMessageCallback(messageCallback);
+		server.setCloseCallback(closeCallback);
+		server.setConnectCallback(connectCallback);
 
-	// 	loop.loop();
-	// }
-	// else
-	// {
-	// 	TcpClient client("firstClient",g_loop,"127.0.0.1",8888);
-	// 	client.setMessageCallback(messageCallback);
-	// 	client.setCloseCallback(closeCallback);
-	// 	client.setConnectCallback(clientConnectCallback);
-	// 	client.connect();
+		loop.loop();
+	}
+	else
+	{
+		clock_t start,end;
 
+		start = clock();
+		for(int i = 1; i <= 5;++i)
+		{
+			g_NoReturnPool->AddNewTask([i](){ createThreadFunc(i);}); 
+		}
 
-	// 	loop.loop();
-	// }
+		end = clock();
+
+		printf( "%f 秒\n", (double)(end - start) / CLOCKS_PER_SEC);
+
+		//loop.loop();
+	}
 	//TCP test----------------------------------------------------------
 
-	TimeWheel wheel(g_loop,3,5,1);
+	// TimeWheel wheel(g_loop,3,5,1);
 
-	wheel.addTimer(timeout2,10);
+	// wheel.addTimer(timeout2,10);
 
 	loop.loop();
 

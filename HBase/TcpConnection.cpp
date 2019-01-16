@@ -18,7 +18,10 @@ TcpConnection::TcpConnection(const std::string& name,EventLoop* loop_
 
 TcpConnection::~TcpConnection()
 {
-
+    if(state != kConnected)
+    {
+        connChannel->disableAll();
+    }
 }
 
 void TcpConnection::handleRead()
@@ -50,6 +53,7 @@ void TcpConnection::handleWrite()
 
 void TcpConnection::handleClose()
 {
+    setState(kConnectClose);
     connChannel->disableAll();
     if(closeCallback)
     {
@@ -89,6 +93,7 @@ void TcpConnection::sendInLoop(const std::string& message)
 
 void TcpConnection::connectEstablished()
 {
+    setState(kConnected);
     if(connectCallback)
     {
         connectCallback(shared_from_this());
