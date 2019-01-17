@@ -22,6 +22,9 @@ public:
     void setConnectCallback(const ConnectCallback& cb) { connectCallback = cb;}
     void setCloseCallback(const CloseCallback& cb) { closeCallback = cb;}
 
+    //析构掉TcpConnection
+    void setRemoveCallback(const FuncCallback& cb) { removeCallback = cb;}
+
     //保证线程安全，如果在loop线程中，那么直接执行，如果不在，则加入loop的执行函数中
     void send(const std::string& message);
     void sendInLoop(const std::string& message);
@@ -47,6 +50,7 @@ private:
     MessageCallback messageCallback;
     ConnectCallback connectCallback;
     CloseCallback closeCallback;
+    FuncCallback removeCallback;
 
     Buffer inputBuff;
     Buffer outputBuff;

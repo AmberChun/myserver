@@ -18,18 +18,28 @@ TcpServer::~TcpServer()
 
 }
 
- void TcpServer::newConnection(int connfd, const struct sockaddr_in&  peer_addr)
- {
-     char buf[32];
-     snprintf(buf,sizeof(buf),"#%d",nextConnId);
-     ++nextConnId;
-     std::string connName = tcpName + buf;
+void TcpServer::newConnection(int connfd, const struct sockaddr_in&  peer_addr)
+{
+    char buf[32];
+    snprintf(buf,sizeof(buf),"#%d",nextConnId);
+    ++nextConnId;
+    std::string connName = tcpName + buf;
 
-     const struct sockaddr_in * plocaladdr = acceptor->getlocaladdr();
-     TcpConnectionPtr connSPtr = std::make_shared<TcpConnection>(connName,loop,connfd,*plocaladdr,peer_addr);
-     connMap[connName] = connSPtr;
-     connSPtr->setConnectCallback(connectCallback);
-     connSPtr->setMessageCallback(messageCallback);
-     connSPtr->setCloseCallback(closeCallback);
-     connSPtr->connectEstablished();
- }
+    const struct sockaddr_in * plocaladdr = acceptor->getlocaladdr();
+    TcpConnectionPtr connSPtr = std::make_shared<TcpConnection>(connName,loop,connfd,*plocaladdr,peer_addr);
+    connMap[connName] = connSPtr;
+    connSPtr->setConnectCallback(connectCallback);
+    connSPtr->setMessageCallback(messageCallback);
+    connSPtr->setCloseCallback(closeCallback);
+    connSPtr->setRemoveCallback(std::bind(&TcpServer::removeConnection,this,connName));
+    connSPtr->connectEstablished();
+}
+
+void TcpServer::removeConnection(const std::string& connName)
+{
+    ConnMap::iterator it = connMap.find(connName);
+    if(it != connMap.end())
+    {
+        connMap.erase(it);
+    }
+}

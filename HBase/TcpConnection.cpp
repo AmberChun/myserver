@@ -59,6 +59,11 @@ void TcpConnection::handleClose()
     {
         closeCallback(shared_from_this());
     }
+
+    if(removeCallback)
+    {
+        removeCallback();
+    }
 }
 
 void TcpConnection::send(const std::string& message)

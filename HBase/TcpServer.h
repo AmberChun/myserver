@@ -13,6 +13,7 @@ public:
     ~TcpServer();
 
     void newConnection(int connfd, const struct sockaddr_in&  peer_addr);
+    void removeConnection(const std::string& connName);
 
     void setMessageCallback(const MessageCallback& cb) { messageCallback = cb;}
     void setConnectCallback(const ConnectCallback& cb) { connectCallback = cb;}
