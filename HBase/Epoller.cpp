@@ -66,7 +66,7 @@ Timestamp Epoller::runOnce(ChannelList* activeChannels)
 {
     //memset(&eventList[0],0,(int)eventList.size());
     int nfds = epoll_wait(epollfd, &*eventList.begin(), (int)eventList.size(), 0);
-    Timestamp now = TimerQueue::Now();
+    Timestamp now = loop->Now();
     if(nfds > 0)
     {
         fillActiveChannels(nfds,activeChannels);

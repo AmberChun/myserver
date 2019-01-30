@@ -34,6 +34,10 @@ class EventLoop : public Nocopyable
     TimerWPtr runEvery(const FuncCallback &cb, int interval);
 
     bool isInLoopThread();
+
+    Timestamp getTimeCache();// 获取时间缓存
+    Timestamp Now() { return getTimeCache();}
+
   private:
     
     //此调用中不得再往funcCallbackList容器中push新的内容
@@ -42,6 +46,9 @@ class EventLoop : public Nocopyable
     void wakeup();     //runInLoop 调用
     void handleRead(); //wakeupChannel 的读事件调用
 
+    void updateTimeCache();//更新时间缓存
+    void clearTimeCache();//清空时间缓存
+   
   private:
     bool isLooping;
     bool quit_;
@@ -56,4 +63,7 @@ class EventLoop : public Nocopyable
 
     //EventLoop的唤醒功能
     std::unique_ptr<Channel> wakeupChannel;
+
+    //时间缓存
+    Timestamp time_cache_;
 };

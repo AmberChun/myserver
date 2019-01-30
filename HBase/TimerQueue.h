@@ -42,7 +42,7 @@ public:
     typedef std::vector<Entry> RecycleTimerList;
     typedef std::multimap<Timestamp,TimerSPtr> TimerMultiMap;
 public:
-    static Timestamp Now();
+    Timestamp Now();
 
 public:
     TimerQueue(EventLoop *loop_);

@@ -127,9 +127,7 @@ void TimerQueue::recycleTimer()
 
 Timestamp TimerQueue::Now()
 {
-    struct timeval tv;
-    gettimeofday(&tv,NULL);
-    return tv.tv_sec;
+    return timerChannel->getLoop()->getTimeCache();
 }
 
 

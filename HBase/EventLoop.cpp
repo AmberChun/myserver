@@ -18,6 +18,7 @@ EventLoop::EventLoop()
     ,epoller(new Epoller(this))
     ,timerQueue(new TimerQueue(this))
     ,wakeupChannel(new Channel(this,::eventfd(0,EFD_NONBLOCK | EFD_CLOEXEC)))
+    ,time_cache_(0)
 {
     if(t_loopInThisThread)
     {
@@ -57,6 +58,8 @@ void EventLoop::loop()
     //run epoll 
     while(!quit_)
     {
+        updateTimeCache();
+
         activeChannels.clear();
         Timestamp now = epoller->runOnce(&activeChannels);
         for (Channel* channel : activeChannels)
@@ -65,6 +68,8 @@ void EventLoop::loop()
         }
 
         timerQueue->doActiveTimer();
+
+        clearTimeCache();
     }
 
     isLooping = false;
@@ -147,6 +152,23 @@ void EventLoop::handleRead()
     {
         exit(0);
     }
+}
+
+void EventLoop::updateTimeCache()
+{
+    struct timeval tv;
+    gettimeofday(&tv,NULL);
+    time_cache_ = tv.tv_sec;
+}
+
+void EventLoop::clearTimeCache()
+{
+    time_cache_ = 0;
+}
+
+Timestamp EventLoop::getTimeCache()
+{
+    return time_cache_;
 }
 
 
