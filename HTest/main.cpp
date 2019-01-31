@@ -9,6 +9,7 @@
 #include "ThreadPool.h"
 #include "TcpConnection.h"
 #include "TimeWheel.h"
+#include "TimeHeap.h"
 
 #include <sys/timerfd.h>
 #include <sys/syscall.h>
@@ -141,36 +142,41 @@ int main(int argc,char *argv[])
 
 
 	//TCP test----------------------------------------------------------
-	if(argc == 2)
-	{
-		TcpServer server("firstServer",g_loop,8888);
-		server.setMessageCallback(messageCallback);
-		server.setCloseCallback(closeCallback);
-		server.setConnectCallback(connectCallback);
+	// if(argc == 2)
+	// {
+	// 	TcpServer server("firstServer",g_loop,8888);
+	// 	server.setMessageCallback(messageCallback);
+	// 	server.setCloseCallback(closeCallback);
+	// 	server.setConnectCallback(connectCallback);
 
-		loop.loop();
-	}
-	else
-	{
-		clock_t start,end;
+	// 	loop.loop();
+	// }
+	// else
+	// {
+	// 	clock_t start,end;
 
-		start = clock();
-		for(int i = 1; i <= 50;++i)
-		{
-			g_NoReturnPool->AddNewTask([i](){ createThreadFunc(i);}); 
-		}
+	// 	start = clock();
+	// 	for(int i = 1; i <= 50;++i)
+	// 	{
+	// 		g_NoReturnPool->AddNewTask([i](){ createThreadFunc(i);}); 
+	// 	}
 
-		end = clock();
+	// 	end = clock();
 
-		printf( "%f 秒\n", (double)(end - start) / CLOCKS_PER_SEC);
+	// 	printf( "%f 秒\n", (double)(end - start) / CLOCKS_PER_SEC);
 
-		//loop.loop();
-	}
+	// 	//loop.loop();
+	// }
 	//TCP test----------------------------------------------------------
 
 	// TimeWheel wheel(g_loop,3,5,1);
 
 	// wheel.addTimer(timeout2,10);
+
+	TimeHeap heap(g_loop);
+	heap.addTimer(5,timeout);
+	heap.addTimer(10,timeout2);
+	heap.start();
 
 	loop.loop();
 

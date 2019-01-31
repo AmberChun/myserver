@@ -31,6 +31,8 @@ EventLoop::EventLoop()
 
     wakeupChannel->setReadCallback(std::bind(&EventLoop::runFuncCallback,this));
     wakeupChannel->enableReading();
+
+    updateTimeCache();
 }
 
 EventLoop::~EventLoop()
