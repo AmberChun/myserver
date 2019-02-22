@@ -22,6 +22,10 @@ int Acceptor::createListenFd(int port_)
     int listenfd;
     listenfd = socket(AF_INET,SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC ,0);
     
+    //正式环境下不要使用SO_REUSEADDR
+    int on = 1;	   
+    setsockopt(listenfd,SOL_SOCKET,SO_REUSEADDR,&on,sizeof(on));
+
     memset(&localaddr,0,sizeof(localaddr));
     localaddr.sin_family = AF_INET;
     localaddr.sin_addr.s_addr = htonl(INADDR_ANY);
